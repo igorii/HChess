@@ -38,21 +38,22 @@ initialBoard = unlines ["rnbkqbnr"
 loadBoard   :: String -> Board
 loadBoard s = undefined
 
-readSquare  :: Char -> BoardPiece
+readSquare  :: Char -> Maybe BoardPiece
 readSquare c = 
     case c of 
-        'r' -> (Black, Rook)
-        'n' -> (Black, Knight)
-        'b' -> (Black, Bishop)
-        'k' -> (Black, King)
-        'q' -> (Black, Queen)
-        'p' -> (Black, Pawn)
-        'R' -> (White, Rook)
-        'N' -> (White, Knight)
-        'B' -> (White, Bishop)
-        'K' -> (White, King)
-        'Q' -> (White, Queen)
-        'P' -> (White, Pawn)
+        'r' -> Just (Black, Rook)
+        'n' -> Just (Black, Knight)
+        'b' -> Just (Black, Bishop)
+        'k' -> Just (Black, King)
+        'q' -> Just (Black, Queen)
+        'p' -> Just (Black, Pawn)
+        'R' -> Just (White, Rook)
+        'N' -> Just (White, Knight)
+        'B' -> Just (White, Bishop)
+        'K' -> Just (White, King)
+        'Q' -> Just (White, Queen)
+        'P' -> Just (White, Pawn)
+        otherwise -> Nothing
 
 finished    :: Board -> Bool
 finished b  = False 
