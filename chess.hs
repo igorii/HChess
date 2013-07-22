@@ -2,6 +2,8 @@ module Main where
 
 import Data.List.Split
 
+-- Data and type defines
+
 data Player     = White 
                 | Black 
                 deriving (Show, Eq)
@@ -18,6 +20,7 @@ type BoardPiece = (Player, Piece)
 type BoardEntry = ((Int, Int), Maybe BoardPiece) 
 type Board      = [BoardEntry] 
 
+-- The initial state of the game, black on top
 initialBoard :: String
 initialBoard = unlines ["rnbkqbnr"
                        ,"pppppppp"
@@ -29,8 +32,10 @@ initialBoard = unlines ["rnbkqbnr"
                        ,"RNBQKBNR"
                        ]
 
-loadBoard   :: String -> Board
-loadBoard s = zip coords pieces
+-- Read and write functions
+
+readBoard   :: String -> Board
+readBoard s = zip coords pieces
               where coords = [(x,y) | y <- [0..8] , x <- [0..8]] 
                     pieces = map readSquare $ filter (/= '\n') initialBoard
 
@@ -40,8 +45,6 @@ writeBoard b = format . map writeSquare $ map snd b
                      format xs = (fst s) ++ "\n" ++ (format $ snd s)
                         where s = splitAt 8 xs
 
-
--- Given a character, try to return the player and piece
 readSquare  :: Char -> Maybe BoardPiece
 readSquare c = 
     case c of 
@@ -77,6 +80,8 @@ writeSquare p =
         Just (White, Pawn)   -> 'P' 
         otherwise -> '.'
 
+-- Game logic functions
+
 finished    :: Board -> Bool
 finished b  = False 
 
@@ -91,14 +96,4 @@ gameLoop b  = if finished b
                      b'' = move Black b'
 
 main :: IO ()
-main = putStrLn . writeBoard $ loadBoard initialBoard 
-
-{-
- -  loadBoard
- -  if notFinished
- -  then do
- -      whiteMove b
- -      blackMove b
- -  else
- -      quit
- -}
+main = putStrLn . writeBoard $ readBoard initialBoard 
