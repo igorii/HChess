@@ -1,4 +1,6 @@
-module Chess where
+module Main where
+
+import Data.List.Split
 
 data Player     = White 
                 | Black 
@@ -13,15 +15,8 @@ data Piece      = Pawn
                 deriving (Show, Eq)
 
 type BoardPiece = (Player, Piece) 
-type BoardEntry = ((Int, Int), BoardPiece)
+type BoardEntry = ((Int, Int), Maybe BoardPiece) 
 type Board      = [BoardEntry] 
-
--- A temporary board for testing
-tempBoard :: Board
-tempBoard = [((0,1), (White, Pawn))
-            ,((1,1), (Black, Pawn))
-            ]
--- TODO: delete the above when board loading works
 
 initialBoard :: String
 initialBoard = unlines ["rnbkqbnr"
@@ -34,10 +29,15 @@ initialBoard = unlines ["rnbkqbnr"
                        ,"RNBQKBNR"
                        ]
 
-
 loadBoard   :: String -> Board
-loadBoard s = undefined
+loadBoard s = zip coords pieces
+              where coords = [(x,y) | y <- [0..8] , x <- [0..8]] 
+                    pieces = map readSquare $ filter (/= '\n') initialBoard
 
+writeBoard   :: Board -> String 
+writeBoard b = map writeSquare $ map snd b 
+
+-- Given a character, try to return the player and piece
 readSquare  :: Char -> Maybe BoardPiece
 readSquare c = 
     case c of 
@@ -55,6 +55,24 @@ readSquare c =
         'P' -> Just (White, Pawn)
         otherwise -> Nothing
 
+-- Inverse of readSquare
+writeSquare  :: Maybe BoardPiece -> Char
+writeSquare p = 
+    case p of 
+        Just (Black, Rook)   -> 'r'  
+        Just (Black, Knight) -> 'n' 
+        Just (Black, Bishop) -> 'b' 
+        Just (Black, King)   -> 'k' 
+        Just (Black, Queen)  -> 'q' 
+        Just (Black, Pawn)   -> 'p' 
+        Just (White, Rook)   -> 'R' 
+        Just (White, Knight) -> 'N' 
+        Just (White, Bishop) -> 'B' 
+        Just (White, King)   -> 'K' 
+        Just (White, Queen)  -> 'Q' 
+        Just (White, Pawn)   -> 'P' 
+        otherwise -> '.'
+
 finished    :: Board -> Bool
 finished b  = False 
 
@@ -69,8 +87,7 @@ gameLoop b  = if finished b
                      b'' = move Black b'
 
 main :: IO ()
-main = undefined 
-
+main = putStrLn . writeBoard $ loadBoard initialBoard 
 
 {-
  -  loadBoard
