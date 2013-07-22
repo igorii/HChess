@@ -16,10 +16,12 @@ type BoardPiece = (Player, Piece)
 type BoardEntry = ((Int, Int), BoardPiece)
 type Board      = [BoardEntry] 
 
+-- A temporary board for testing
 tempBoard :: Board
 tempBoard = [((0,1), (White, Pawn))
             ,((1,1), (Black, Pawn))
             ]
+-- TODO: delete the above when board loading works
 
 initialBoard :: String
 initialBoard = unlines ["rnbkqbnr"
