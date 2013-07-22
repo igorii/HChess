@@ -35,7 +35,11 @@ loadBoard s = zip coords pieces
                     pieces = map readSquare $ filter (/= '\n') initialBoard
 
 writeBoard   :: Board -> String 
-writeBoard b = map writeSquare $ map snd b 
+writeBoard b = format . map writeSquare $ map snd b 
+               where format [] = []
+                     format xs = (fst s) ++ "\n" ++ (format $ snd s)
+                        where s = splitAt 8 xs
+
 
 -- Given a character, try to return the player and piece
 readSquare  :: Char -> Maybe BoardPiece
