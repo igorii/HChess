@@ -1,6 +1,8 @@
 module Main where
 
 import Data.List.Split
+import Data.Maybe
+import Data.Char
 
 -- Data and type defines
 
@@ -36,8 +38,8 @@ initialBoard = unlines ["rnbkqbnr"
 
 readBoard   :: String -> Board
 readBoard s = zip coords pieces
-              where coords = [(x,y) | y <- [0..8] , x <- [0..8]] 
-                    pieces = map readSquare $ filter (/= '\n') initialBoard
+              where coords    = [(x,y) | y <- [0..8] , x <- [0..8]] 
+                    pieces    = map readSquare $ filter (/= '\n') initialBoard
 
 writeBoard   :: Board -> String 
 writeBoard b = format . map writeSquare $ map snd b 
@@ -85,15 +87,33 @@ writeSquare p =
 finished    :: Board -> Bool
 finished b  = False 
 
-move        :: Player -> Board -> Board
+move        :: Player -> BoardEntry -> (Int, Int) -> Board -> Board
 move p b    = undefined
+                  
+isValid          :: BoardEntry -> (Int, Int) -> Bool
+isValid x (y, z) = True
 
-gameLoop    :: Board -> Player
-gameLoop b  = if finished b
-                then White
-                else gameLoop b''
-              where  b'  = move White b
-                     b'' = move Black b'
+getMoveCoords :: IO ((Int, Int), (Int, Int))
+getMoveCoords = do x <- getLine
+                   if (length x) == 4
+                   then return $ fmt $ map digitToInt x
+                   else getMoveCoords
+                       where fmt [x1, y1, x2, y2] = ((x1,y1), (x2, y2))
 
-main :: IO ()
-main = putStrLn . writeBoard $ readBoard initialBoard 
+gameLoop b  = do putStr "\ESC[2]"
+                 putStrLn $ writeBoard b
+                 coords <- getMoveCoords
+                 putStrLn "Enter your move in the form: 'xyxy'"
+                 if finished b
+                 then return White
+                 else gameLoop b
+
+                 --then White
+                 --else gameLoop b''
+                 --    where  b'  = move White b
+                 --           b'' = move Black b'
+
+main = let board = readBoard initialBoard
+       in gameLoop board
+
+--putStrLn . writeBoard $ readBoard initialBoard 
