@@ -96,14 +96,14 @@ isValid x (y, z) = True
 getMoveCoords :: IO ((Int, Int), (Int, Int))
 getMoveCoords = do x <- getLine
                    if (length x) == 4
-                   then return $ fmt $ map digitToInt x
+                   then return . fmt $ map digitToInt x
                    else getMoveCoords
                        where fmt [x1, y1, x2, y2] = ((x1,y1), (x2, y2))
 
 gameLoop b  = do putStr "\ESC[2]"
                  putStrLn $ writeBoard b
-                 coords <- getMoveCoords
                  putStrLn "Enter your move in the form: 'xyxy'"
+                 coords <- getMoveCoords
                  if finished b
                  then return White
                  else gameLoop b
