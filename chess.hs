@@ -97,19 +97,11 @@ move p from to b    = if isValid source to
                                 b'             = setPiece p (from, piece) to b
                                 b''            = setPiece p (to, Nothing) from b'
                                 
-setPiece                             :: Player -> BoardEntry -> (Int, Int) -> Board -> Board 
-setPiece player piece location board = let index = fromJust $ elemIndex (location, fromJust $ lookup location board) board
-                                           (x,_:ys) = splitAt index board 
-                                       in x ++ [(location, snd piece)] ++ ys
+setPiece            :: Player -> BoardEntry -> (Int, Int) -> Board -> Board 
+setPiece p pc loc b = let i = fromJust $ elemIndex (loc, fromJust $ lookup loc b) b
+                          (x,_:ys) = splitAt i b 
+                      in x ++ [(loc, snd pc)] ++ ys
                                 
-                                
-                                --replace f t b' = let index    = fromJust $ elemIndex (to, fromJust $ lookup to b) b
-                                --                     (x,_:ys) = splitAt index b
-                                --                 in x ++ [(to, piece)] ++ ys
-                                --clear loc b''' = let index    = fromJust $ elemIndex (loc, fromJust $ lookup loc b''') b'''
-                                --                     (x,_:ys  = splitAt index b
-                                --                 in x ++ [(loc, (p, Nothing))] ++ ys
-
 isValid          :: BoardEntry -> (Int, Int) -> Bool
 isValid x (y, z) = True
 
@@ -120,29 +112,15 @@ getMoveCoords = do x <- getLine
                    else getMoveCoords
                        where fmt [x1, y1, x2, y2] = ((x1,y1), (x2, y2))
 
-gameLoop b  = do --putStr "\ESC[2]"
-                 putStrLn $ writeBoard b
+gameLoop b  = do putStrLn $ writeBoard b
                  putStrLn "Enter your move in the form: 'xyxy'"
                  coords <- getMoveCoords
-                 mapM_ print b
                  print coords
                  let b' = move White (fst coords) (snd coords) b
                  if finished b'
                      then putStrLn "Finished!"
                      else gameLoop b'
                  
-                 --if finished b
-                 --then return ()
-                 --else sequence_ [move White (fst coords) (snd coords) b
-                 --               ,gameLoop b
-                 --               ]
-
-                 --then White
-                 --else gameLoop b''
-                 --    where  b'  = move White b
-                 --           b'' = move Black b'
-
 main = let board = readBoard initialBoard
        in gameLoop board
 
---main = print $ readBoard initialBoard 
