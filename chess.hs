@@ -1,6 +1,7 @@
 module Main where
 
 import Data.List.Split
+import Data.List
 import Data.Maybe
 import Data.Char
 
@@ -20,7 +21,7 @@ data Piece      = Pawn
 
 type BoardPiece = (Player, Piece) 
 type BoardEntry = ((Int, Int), Maybe BoardPiece) 
-type Board      = [BoardEntry] 
+type Board      = [BoardEntry]
 
 -- The initial state of the game, black on top
 initialBoard :: String
@@ -38,7 +39,7 @@ initialBoard = unlines ["rnbkqbnr"
 
 readBoard   :: String -> Board
 readBoard s = zip coords pieces
-              where coords    = [(x,y) | y <- [0..8] , x <- [0..8]] 
+              where coords    = [(x,y) | y <- [0..7] , x <- [0..7]] 
                     pieces    = map readSquare $ filter (/= '\n') initialBoard
 
 writeBoard   :: Board -> String 
@@ -89,11 +90,26 @@ finished b  = False
 
 move                :: Player ->  (Int, Int) -> (Int, Int) -> Board -> Board
 move p from to b    = if isValid source to
-                      then b
+                      then b''
                       else b
-                          where piece  = fromJust $ lookup from b
-                                source = (from, piece)
-                  
+                          where piece          = fromJust $ lookup from b
+                                source         = (from, piece)
+                                b'             = setPiece p (from, piece) to b
+                                b''            = setPiece p (to, Nothing) from b'
+                                
+setPiece                             :: Player -> BoardEntry -> (Int, Int) -> Board -> Board 
+setPiece player piece location board = let index = fromJust $ elemIndex (location, fromJust $ lookup location board) board
+                                           (x,_:ys) = splitAt index board 
+                                       in x ++ [(location, snd piece)] ++ ys
+                                
+                                
+                                --replace f t b' = let index    = fromJust $ elemIndex (to, fromJust $ lookup to b) b
+                                --                     (x,_:ys) = splitAt index b
+                                --                 in x ++ [(to, piece)] ++ ys
+                                --clear loc b''' = let index    = fromJust $ elemIndex (loc, fromJust $ lookup loc b''') b'''
+                                --                     (x,_:ys  = splitAt index b
+                                --                 in x ++ [(loc, (p, Nothing))] ++ ys
+
 isValid          :: BoardEntry -> (Int, Int) -> Bool
 isValid x (y, z) = True
 
@@ -104,10 +120,12 @@ getMoveCoords = do x <- getLine
                    else getMoveCoords
                        where fmt [x1, y1, x2, y2] = ((x1,y1), (x2, y2))
 
-gameLoop b  = do putStr "\ESC[2]"
+gameLoop b  = do --putStr "\ESC[2]"
                  putStrLn $ writeBoard b
                  putStrLn "Enter your move in the form: 'xyxy'"
                  coords <- getMoveCoords
+                 mapM_ print b
+                 print coords
                  let b' = move White (fst coords) (snd coords) b
                  if finished b'
                      then putStrLn "Finished!"
@@ -127,4 +145,4 @@ gameLoop b  = do putStr "\ESC[2]"
 main = let board = readBoard initialBoard
        in gameLoop board
 
---putStrLn . writeBoard $ readBoard initialBoard 
+--main = print $ readBoard initialBoard 
