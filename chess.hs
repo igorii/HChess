@@ -87,8 +87,12 @@ writeSquare p =
 finished    :: Board -> Bool
 finished b  = False 
 
-move        :: Player -> BoardEntry -> (Int, Int) -> Board -> Board
-move p b    = undefined
+move                :: Player ->  (Int, Int) -> (Int, Int) -> Board -> Board
+move p from to b    = if isValid source to
+                      then b
+                      else b
+                          where piece  = fromJust $ lookup from b
+                                source = (from, piece)
                   
 isValid          :: BoardEntry -> (Int, Int) -> Bool
 isValid x (y, z) = True
@@ -104,9 +108,16 @@ gameLoop b  = do putStr "\ESC[2]"
                  putStrLn $ writeBoard b
                  putStrLn "Enter your move in the form: 'xyxy'"
                  coords <- getMoveCoords
-                 if finished b
-                 then return White
-                 else gameLoop b
+                 let b' = move White (fst coords) (snd coords) b
+                 if finished b'
+                     then putStrLn "Finished!"
+                     else gameLoop b'
+                 
+                 --if finished b
+                 --then return ()
+                 --else sequence_ [move White (fst coords) (snd coords) b
+                 --               ,gameLoop b
+                 --               ]
 
                  --then White
                  --else gameLoop b''
