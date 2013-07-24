@@ -43,9 +43,9 @@ readBoard s = zip coords pieces
                     pieces    = map readSquare $ filter (/= '\n') initialBoard
 
 writeBoard   :: Board -> String 
-writeBoard b = format . map writeSquare $ map snd b 
-               where format [] = []
-                     format xs = (fst s) ++ "\n" ++ (format $ snd s)
+writeBoard b = "  01234567\n" ++ (format 0 $ map writeSquare $ map snd b) 
+               where format i [] = []
+                     format i xs = (show i) ++ " " ++ (fst s) ++ "\n" ++ (format (i+1) $ snd s)
                         where s = splitAt 8 xs
 
 readSquare  :: Char -> Maybe BoardPiece
