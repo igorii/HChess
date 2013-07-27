@@ -89,7 +89,7 @@ finished    :: Board -> Bool
 finished b  = False 
 
 move                :: Player ->  (Int, Int) -> (Int, Int) -> Board -> Board
-move p from to b    = if isValid source to
+move p from to b    = if isValid source to b
                       then b''
                       else b
                           where piece          = fromJust $ lookup from b
@@ -102,8 +102,20 @@ setPiece p pc loc b = let i = fromJust $ elemIndex (loc, fromJust $ lookup loc b
                           (x,_:ys) = splitAt i b 
                       in x ++ [(loc, snd pc)] ++ ys
                                 
-isValid          :: BoardEntry -> (Int, Int) -> Bool
-isValid x (y, z) = True
+isValid                          :: BoardEntry -> (Int, Int) -> Board -> Bool
+isValid (from, Just (c, p)) to b = case p of          -- TODO: Change to sum $ map abs [delta, delta]
+                                   King      -> if  ((1 == (abs $ (fst from) - (fst to)))  && 
+                                                     (0 == (abs $ (snd from) - (snd to)))) || 
+                                                    ((1 == (abs $ (snd from) - (snd to)))  &&
+                                                     (0 == (abs $ (fst from) - (fst to))))
+                                                then checkColour (lookup to b) c
+                                                else False
+                                   otherwise -> True
+                                   
+checkColour       :: Maybe BoardPiece -> Player -> Bool
+checkColour p' c' = case p' of 
+                    Nothing   -> True
+                    otherwise -> c' /= (fst $ fromJust p') 
 
 getMoveCoords :: IO ((Int, Int), (Int, Int))
 getMoveCoords = do x <- getLine

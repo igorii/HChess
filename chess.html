@@ -1,0 +1,124 @@
+<h1 id="haskell-chess">Haskell Chess</h1>
+<p>This is my first attempt at writing a useful Haskell program. I am currently reading the wonderful &quot;Haskell School of Expression&quot; Book by Paul Hudak of Yale. I am finding Haskell extremely intriguing, and thought I would take a stab at creating a Chess application (console-based) in Haskell. The application works via the honor system. I've decided to put this project on hold while I learn more so that I can more effectively implement an AI and a move validator.</p>
+<p>In any case, here is my first attempt at Haskell...</p>
+<p>Since the application is a single file, I've declared this as the Main module.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></code></pre>
+<p>I've then imported some packages for list operations and the Maybe monad.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">import</span> Data.List.Split
+<span class="kw">import</span> Data.List
+<span class="kw">import</span> Data.Maybe
+<span class="kw">import</span> Data.Char</code></pre>
+<p>Here I define the <em>algebraic data types</em> I'll be using in the application. <code>Player</code> will reflect the two types of players in the game, White and Black.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Player</span>     <span class="fu">=</span> <span class="dt">White</span> 
+                <span class="fu">|</span> <span class="dt">Black</span> 
+                <span class="kw">deriving</span> (<span class="kw">Show</span>, <span class="kw">Eq</span>)</code></pre>
+<p>Piece reflects the various chess pieces that are used. For both of these data types, I've derived Show and Eq. This allows me to compare <code>Player</code>s with other <code>Player</code>s (White /= Black, etc), and write the types to stdout.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Piece</span>      <span class="fu">=</span> <span class="dt">Pawn</span>
+                <span class="fu">|</span> <span class="dt">Rook</span>
+                <span class="fu">|</span> <span class="dt">Bishop</span>
+                <span class="fu">|</span> <span class="dt">Knight</span>
+                <span class="fu">|</span> <span class="dt">King</span>
+                <span class="fu">|</span> <span class="dt">Queen</span>
+                <span class="kw">deriving</span> (<span class="kw">Show</span>, <span class="kw">Eq</span>)</code></pre>
+<p>Here I provide some type declarations that will allow the code to be more concise. The <em>type</em> keyword, rather than defining a new data type, simply creates a <em>synonym</em> for a data type, or compound type. <code>BoardPiece</code> reflects a piece of a certain colour, ie (Black, Knight). <code>BoardEntry</code> gives a 2D location to a <code>BoardPiece</code>. Lastly, <code>Board</code> is simply a list of <code>BoardEntrie</code>s.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">BoardPiece</span> <span class="fu">=</span> (<span class="dt">Player</span>, <span class="dt">Piece</span>) 
+<span class="kw">type</span> <span class="dt">BoardEntry</span> <span class="fu">=</span> ((<span class="dt">Int</span>, <span class="dt">Int</span>), <span class="dt">Maybe</span> <span class="dt">BoardPiece</span>) 
+<span class="kw">type</span> <span class="dt">Board</span>      <span class="fu">=</span> [<span class="dt">BoardEntry</span>]</code></pre>
+<p>This is the initial setup of the chess board. Black pieces are on top, while White pieces are on the bottom.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">initialBoard ::</span> <span class="dt">String</span>
+initialBoard <span class="fu">=</span> <span class="fu">unlines</span> [<span class="st">&quot;rnbkqbnr&quot;</span>
+                       ,<span class="st">&quot;pppppppp&quot;</span>
+                       ,<span class="st">&quot;........&quot;</span>
+                       ,<span class="st">&quot;........&quot;</span>
+                       ,<span class="st">&quot;........&quot;</span>
+                       ,<span class="st">&quot;........&quot;</span>
+                       ,<span class="st">&quot;PPPPPPPP&quot;</span>
+                       ,<span class="st">&quot;RNBQKBNR&quot;</span>
+                       ]</code></pre>
+<p>The first order of business in creating the game logic will be reading and writing a board. Reading will take a string representation of the board (as above), and translate it into a <code>Board</code> type. The inverse of that operation would then be to write the board. Writing would take a <code>Board</code> and return a string representation.</p>
+<p>To read, a list comprehension is created that returns the set of 2D coordinates in the square bound by (0,0) and (7,7). Beside this set, another list, called <code>pieces</code> is created which represents the internal piece type for each character in the string. These two lists are joined together using <code>zip</code>, producing a single list of the form [(Int, Int), (Player, Piece)], which is the definition of the <code>Board</code> type.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">readBoard   ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">Board</span>
+readBoard s <span class="fu">=</span> <span class="fu">zip</span> coords pieces
+              <span class="kw">where</span> coords    <span class="fu">=</span> [(x,y) <span class="fu">|</span> y <span class="ot">&lt;-</span> [<span class="dv">0</span><span class="fu">..</span><span class="dv">7</span>] , x <span class="ot">&lt;-</span> [<span class="dv">0</span><span class="fu">..</span><span class="dv">7</span>]] 
+                    pieces    <span class="fu">=</span> <span class="fu">map</span> readSquare <span class="fu">$</span> <span class="fu">filter</span> (<span class="fu">/=</span> <span class="ch">&#39;\n&#39;</span>) initialBoard</code></pre>
+<p>As the inverse of <code>readBoard</code>, <code>writeBoard</code> takes a <code>Board</code> type and creates a list of characters, one character for each element in the board. After the string is constructed, newlines () are inserted every 8 characters to create the affect of a 2D board.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">writeBoard   ::</span> <span class="dt">Board</span> <span class="ot">-&gt;</span> <span class="dt">String</span> 
+writeBoard b <span class="fu">=</span> <span class="st">&quot;  01234567\n&quot;</span> <span class="fu">++</span> (format <span class="dv">0</span> <span class="fu">$</span> <span class="fu">map</span> writeSquare <span class="fu">$</span> <span class="fu">map</span> <span class="fu">snd</span> b) 
+               <span class="kw">where</span> format i [] <span class="fu">=</span> []
+                     format i xs <span class="fu">=</span> (<span class="fu">show</span> i) <span class="fu">++</span> <span class="st">&quot; &quot;</span> <span class="fu">++</span> (<span class="fu">fst</span> s) <span class="fu">++</span> <span class="st">&quot;\n&quot;</span> <span class="fu">++</span> (format (i<span class="fu">+</span><span class="dv">1</span>) <span class="fu">$</span> <span class="fu">snd</span> s)
+                        <span class="kw">where</span> s <span class="fu">=</span> <span class="fu">splitAt</span> <span class="dv">8</span> xs</code></pre>
+<p>I then had to map characters to pieces. There may be a much simpler way to do this with Haskell magic, but I opted for a case statement to be explicit.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">readSquare  ::</span> <span class="dt">Char</span> <span class="ot">-&gt;</span> <span class="dt">Maybe</span> <span class="dt">BoardPiece</span>
+readSquare c <span class="fu">=</span> 
+   <span class="kw">case</span> c <span class="kw">of</span> 
+       <span class="ch">&#39;r&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">Rook</span>)
+       <span class="ch">&#39;n&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">Knight</span>)
+       <span class="ch">&#39;b&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">Bishop</span>)
+       <span class="ch">&#39;k&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">King</span>)
+       <span class="ch">&#39;q&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">Queen</span>)
+       <span class="ch">&#39;p&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">Pawn</span>)
+       <span class="ch">&#39;R&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Rook</span>)
+       <span class="ch">&#39;N&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Knight</span>)
+       <span class="ch">&#39;B&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Bishop</span>)
+       <span class="ch">&#39;K&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">King</span>)
+       <span class="ch">&#39;Q&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Queen</span>)
+       <span class="ch">&#39;P&#39;</span> <span class="ot">-&gt;</span> <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Pawn</span>)
+       <span class="fu">otherwise</span> <span class="ot">-&gt;</span> <span class="kw">Nothing</span></code></pre>
+<p>And the inverse of the above, a mapping of pieces to characters.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">writeSquare  ::</span> <span class="dt">Maybe</span> <span class="dt">BoardPiece</span> <span class="ot">-&gt;</span> <span class="dt">Char</span>
+writeSquare p <span class="fu">=</span> 
+    <span class="kw">case</span> p <span class="kw">of</span> 
+        <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">Rook</span>)   <span class="ot">-&gt;</span> <span class="ch">&#39;r&#39;</span>  
+        <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">Knight</span>) <span class="ot">-&gt;</span> <span class="ch">&#39;n&#39;</span> 
+        <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">Bishop</span>) <span class="ot">-&gt;</span> <span class="ch">&#39;b&#39;</span> 
+        <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">King</span>)   <span class="ot">-&gt;</span> <span class="ch">&#39;k&#39;</span> 
+        <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">Queen</span>)  <span class="ot">-&gt;</span> <span class="ch">&#39;q&#39;</span> 
+        <span class="kw">Just</span> (<span class="dt">Black</span>, <span class="dt">Pawn</span>)   <span class="ot">-&gt;</span> <span class="ch">&#39;p&#39;</span> 
+        <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Rook</span>)   <span class="ot">-&gt;</span> <span class="ch">&#39;R&#39;</span> 
+        <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Knight</span>) <span class="ot">-&gt;</span> <span class="ch">&#39;N&#39;</span> 
+        <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Bishop</span>) <span class="ot">-&gt;</span> <span class="ch">&#39;B&#39;</span> 
+        <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">King</span>)   <span class="ot">-&gt;</span> <span class="ch">&#39;K&#39;</span> 
+        <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Queen</span>)  <span class="ot">-&gt;</span> <span class="ch">&#39;Q&#39;</span> 
+        <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Pawn</span>)   <span class="ot">-&gt;</span> <span class="ch">&#39;P&#39;</span> 
+        <span class="fu">otherwise</span> <span class="ot">-&gt;</span> <span class="ch">&#39;.&#39;</span></code></pre>
+<p>Finally, the game logic bits. The following functions are largely unfinished, but provide enoigh functionality to have a game of chess on the honor system. <code>finished</code> should be a function that returns false when either player is in checkmate. For now, it always returns False, keeping the game in play until manually shut down.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">finished    ::</span> <span class="dt">Board</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span>
+finished b  <span class="fu">=</span> <span class="kw">False</span> </code></pre>
+<p>Then comes the tricky part (for me). I had to define how to take a piece and move it to another location on the board. The next function handles this logic by taking a player (the player who is making the move), a from location, a to location, and a board, and returns the new board with the move applied. First, the source piece is obtained via a <code>lookup</code> into the board. Then the to location is updated to the source piece. Lastly, the from location is cleared by setting Nothing as the piece.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">move                ::</span> <span class="dt">Player</span> <span class="ot">-&gt;</span>  (<span class="dt">Int</span>, <span class="dt">Int</span>) <span class="ot">-&gt;</span> (<span class="dt">Int</span>, <span class="dt">Int</span>) <span class="ot">-&gt;</span> <span class="dt">Board</span> <span class="ot">-&gt;</span> <span class="dt">Board</span>
+move p from to b    <span class="fu">=</span> <span class="kw">if</span> isValid source to b
+                      <span class="kw">then</span> b&#39;&#39;
+                      <span class="kw">else</span> b
+                          <span class="kw">where</span> piece          <span class="fu">=</span> fromJust <span class="fu">$</span> <span class="fu">lookup</span> from b
+                                source         <span class="fu">=</span> (from, piece)
+                                b&#39;             <span class="fu">=</span> setPiece p (from, piece) to b
+                                b&#39;&#39;            <span class="fu">=</span> setPiece p (to, <span class="kw">Nothing</span>) from b&#39;</code></pre>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">setPiece            ::</span> <span class="dt">Player</span> <span class="ot">-&gt;</span> <span class="dt">BoardEntry</span> <span class="ot">-&gt;</span> (<span class="dt">Int</span>, <span class="dt">Int</span>) <span class="ot">-&gt;</span> <span class="dt">Board</span> <span class="ot">-&gt;</span> <span class="dt">Board</span> 
+setPiece p pc loc b <span class="fu">=</span> <span class="kw">let</span> i <span class="fu">=</span> fromJust <span class="fu">$</span> elemIndex (loc, fromJust <span class="fu">$</span> <span class="fu">lookup</span> loc b) b
+                          (x,_<span class="fu">:</span>ys) <span class="fu">=</span> <span class="fu">splitAt</span> i b 
+                      <span class="kw">in</span> x <span class="fu">++</span> [(loc, <span class="fu">snd</span> pc)] <span class="fu">++</span> ys</code></pre>
+<p>The next function would be the move validator, but after taking a stab at this, and producing a large chunk of gross code, I've chosen to wait until I learn more of the language. For now I'll return True for every proposed move.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">isValid       ::</span> <span class="dt">BoardEntry</span> <span class="ot">-&gt;</span> (<span class="dt">Int</span>, <span class="dt">Int</span>) <span class="ot">-&gt;</span> <span class="dt">Board</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span>
+isValid x y z <span class="fu">=</span> <span class="kw">True</span>       </code></pre>
+<p>Next, for some IO! This function handles retrieving the source and destination locations from the player. Currently, the expected format is '0033', which translates to source &lt;- (0,0), destination &lt;- (3,3).</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">getMoveCoords ::</span> <span class="dt">IO</span> ((<span class="dt">Int</span>, <span class="dt">Int</span>), (<span class="dt">Int</span>, <span class="dt">Int</span>))
+getMoveCoords <span class="fu">=</span> <span class="kw">do</span> x <span class="ot">&lt;-</span> <span class="fu">getLine</span>
+                   <span class="kw">if</span> (<span class="fu">length</span> x) <span class="fu">==</span> <span class="dv">4</span>
+                   <span class="kw">then</span> <span class="fu">return</span> <span class="fu">.</span> fmt <span class="fu">$</span> <span class="fu">map</span> <span class="fu">digitToInt</span> x
+                   <span class="kw">else</span> getMoveCoords
+                       <span class="kw">where</span> fmt [x1, y1, x2, y2] <span class="fu">=</span> ((x1,y1), (x2, y2))</code></pre>
+<p>The gameloop is fairly simple. Write the board, get the move, perform the move, check whether the game is finished and repeat if not.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell">gameLoop b  <span class="fu">=</span> <span class="kw">do</span> <span class="fu">putStrLn</span> <span class="fu">$</span> writeBoard b
+                 <span class="fu">putStrLn</span> <span class="st">&quot;Enter your move in the form: &#39;xyxy&#39;&quot;</span>
+                 coords <span class="ot">&lt;-</span> getMoveCoords
+                 <span class="fu">print</span> coords
+                 <span class="kw">let</span> b&#39; <span class="fu">=</span> move <span class="dt">White</span> (<span class="fu">fst</span> coords) (<span class="fu">snd</span> coords) b
+                 <span class="kw">if</span> finished b&#39;
+                     <span class="kw">then</span> <span class="fu">putStrLn</span> <span class="st">&quot;Finished!&quot;</span>
+                     <span class="kw">else</span> gameLoop b&#39;</code></pre>
+<p>Lastly, the driver for the whole application, the main function. Here the initial board is loaded, and the gameloop is started.</p>
+<pre class="sourceCode literate haskell"><code class="sourceCode haskell">main <span class="fu">=</span> <span class="kw">let</span> board <span class="fu">=</span> readBoard initialBoard
+       <span class="kw">in</span> gameLoop board</code></pre>
+<p>I'm sure there is a lot done poorly in the above code. I'd love to learn what I could be doing better in future projects, so is there is anything that is striking you as wildly stupid, or just a silly way of doing something, please feel free to leave a suggestion in the comments below (if reading this at timthornton.net/blog).</p>
+<p>I'd like to continue this project later when I've learned more about the language. I'm currently fascinated by Haskell, and quite enjoy the book by Hudak.</p>
+<p>If you're still reading at this point, thanks for hanging in there! It means a lot! :)</p>
