@@ -9,7 +9,7 @@ Since the application is a single file, I've declared this as the Main module.
 
 >module Main where
 
-I've then imported some packages for list operations and the Maybe monad.
+I've then imported some packages for list operations and the Maybe data type.
 
 >import Data.List.Split
 >import Data.List
@@ -60,7 +60,7 @@ To read, a list comprehension is created that returns the set of 2D coordinates 
 >              where coords    = [(x,y) | y <- [0..7] , x <- [0..7]] 
 >                    pieces    = map readSquare $ filter (/= '\n') initialBoard
 
-As the inverse of `readBoard`, `writeBoard` takes a `Board` type and creates a list of characters, one character for each element in the board. After the string is constructed, newlines (\n) are inserted every 8 characters to create the affect of a 2D board.
+As the inverse of `readBoard`, `writeBoard` takes a `Board` type and creates a list of characters, one character for each element in the board. After the string is constructed, newlines (\n) are inserted every 8 characters to create the effect of a 2D board.
 
 >writeBoard   :: Board -> String 
 >writeBoard b = "  01234567\n" ++ (format 0 $ map writeSquare $ map snd b) 
@@ -106,7 +106,7 @@ And the inverse of the above, a mapping of pieces to characters.
 >        Just (White, Pawn)   -> 'P' 
 >        otherwise -> '.'
 
-Finally, the game logic bits. The following functions are largely unfinished, but provide enoigh functionality to have a game of chess on the honor system. `finished` should be a function that returns false when either player is in checkmate. For now, it always returns False, keeping the game in play until manually shut down.
+Finally, the game logic bits. The following functions are largely unfinished, but provide enough functionality to have a game of chess on the honor system. `finished` should be a function that returns false when either player is in checkmate. For now, it always returns False, keeping the game in play until manually shut down.
 
 >finished    :: Board -> Bool
 >finished b  = False 
@@ -158,7 +158,7 @@ Lastly, the driver for the whole application, the main function. Here the initia
 >main = let board = readBoard initialBoard
 >       in gameLoop board
 
-I'm sure there is a lot done poorly in the above code. I'd love to learn what I could be doing better in future projects, so is there is anything that is striking you as wildly stupid, or just a silly way of doing something, please feel free to leave a suggestion in the comments below (if reading this at timthornton.net/blog).
+I'm sure there is a lot done poorly in the above code. I'd love to learn what I could be doing better in future projects, so if there is anything that is striking you as wildly stupid, or just a silly way of doing something, please feel free to leave a suggestion in the comments below (if reading this at timthornton.net/blog).
 
 I'd like to continue this project later when I've learned more about the language. I'm currently fascinated by Haskell, and quite enjoy the book by Hudak. 
 

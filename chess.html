@@ -3,7 +3,7 @@
 <p>In any case, here is my first attempt at Haskell...</p>
 <p>Since the application is a single file, I've declared this as the Main module.</p>
 <pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Main</span> <span class="kw">where</span></code></pre>
-<p>I've then imported some packages for list operations and the Maybe monad.</p>
+<p>I've then imported some packages for list operations and the Maybe data type.</p>
 <pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="kw">import</span> Data.List.Split
 <span class="kw">import</span> Data.List
 <span class="kw">import</span> Data.Maybe
@@ -41,7 +41,7 @@ initialBoard <span class="fu">=</span> <span class="fu">unlines</span> [<span cl
 readBoard s <span class="fu">=</span> <span class="fu">zip</span> coords pieces
               <span class="kw">where</span> coords    <span class="fu">=</span> [(x,y) <span class="fu">|</span> y <span class="ot">&lt;-</span> [<span class="dv">0</span><span class="fu">..</span><span class="dv">7</span>] , x <span class="ot">&lt;-</span> [<span class="dv">0</span><span class="fu">..</span><span class="dv">7</span>]] 
                     pieces    <span class="fu">=</span> <span class="fu">map</span> readSquare <span class="fu">$</span> <span class="fu">filter</span> (<span class="fu">/=</span> <span class="ch">&#39;\n&#39;</span>) initialBoard</code></pre>
-<p>As the inverse of <code>readBoard</code>, <code>writeBoard</code> takes a <code>Board</code> type and creates a list of characters, one character for each element in the board. After the string is constructed, newlines () are inserted every 8 characters to create the affect of a 2D board.</p>
+<p>As the inverse of <code>readBoard</code>, <code>writeBoard</code> takes a <code>Board</code> type and creates a list of characters, one character for each element in the board. After the string is constructed, newlines () are inserted every 8 characters to create the effect of a 2D board.</p>
 <pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">writeBoard   ::</span> <span class="dt">Board</span> <span class="ot">-&gt;</span> <span class="dt">String</span> 
 writeBoard b <span class="fu">=</span> <span class="st">&quot;  01234567\n&quot;</span> <span class="fu">++</span> (format <span class="dv">0</span> <span class="fu">$</span> <span class="fu">map</span> writeSquare <span class="fu">$</span> <span class="fu">map</span> <span class="fu">snd</span> b) 
                <span class="kw">where</span> format i [] <span class="fu">=</span> []
@@ -81,7 +81,7 @@ writeSquare p <span class="fu">=</span>
         <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Queen</span>)  <span class="ot">-&gt;</span> <span class="ch">&#39;Q&#39;</span> 
         <span class="kw">Just</span> (<span class="dt">White</span>, <span class="dt">Pawn</span>)   <span class="ot">-&gt;</span> <span class="ch">&#39;P&#39;</span> 
         <span class="fu">otherwise</span> <span class="ot">-&gt;</span> <span class="ch">&#39;.&#39;</span></code></pre>
-<p>Finally, the game logic bits. The following functions are largely unfinished, but provide enoigh functionality to have a game of chess on the honor system. <code>finished</code> should be a function that returns false when either player is in checkmate. For now, it always returns False, keeping the game in play until manually shut down.</p>
+<p>Finally, the game logic bits. The following functions are largely unfinished, but provide enough functionality to have a game of chess on the honor system. <code>finished</code> should be a function that returns false when either player is in checkmate. For now, it always returns False, keeping the game in play until manually shut down.</p>
 <pre class="sourceCode literate haskell"><code class="sourceCode haskell"><span class="ot">finished    ::</span> <span class="dt">Board</span> <span class="ot">-&gt;</span> <span class="dt">Bool</span>
 finished b  <span class="fu">=</span> <span class="kw">False</span> </code></pre>
 <p>Then comes the tricky part (for me). I had to define how to take a piece and move it to another location on the board. The next function handles this logic by taking a player (the player who is making the move), a from location, a to location, and a board, and returns the new board with the move applied. First, the source piece is obtained via a <code>lookup</code> into the board. Then the to location is updated to the source piece. Lastly, the from location is cleared by setting Nothing as the piece.</p>
@@ -119,6 +119,6 @@ getMoveCoords <span class="fu">=</span> <span class="kw">do</span> x <span class
 <p>Lastly, the driver for the whole application, the main function. Here the initial board is loaded, and the gameloop is started.</p>
 <pre class="sourceCode literate haskell"><code class="sourceCode haskell">main <span class="fu">=</span> <span class="kw">let</span> board <span class="fu">=</span> readBoard initialBoard
        <span class="kw">in</span> gameLoop board</code></pre>
-<p>I'm sure there is a lot done poorly in the above code. I'd love to learn what I could be doing better in future projects, so is there is anything that is striking you as wildly stupid, or just a silly way of doing something, please feel free to leave a suggestion in the comments below (if reading this at timthornton.net/blog).</p>
+<p>I'm sure there is a lot done poorly in the above code. I'd love to learn what I could be doing better in future projects, so if there is anything that is striking you as wildly stupid, or just a silly way of doing something, please feel free to leave a suggestion in the comments below (if reading this at timthornton.net/blog).</p>
 <p>I'd like to continue this project later when I've learned more about the language. I'm currently fascinated by Haskell, and quite enjoy the book by Hudak.</p>
 <p>If you're still reading at this point, thanks for hanging in there! It means a lot! :)</p>
