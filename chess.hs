@@ -8,8 +8,6 @@ import Data.Char
 import Chess.Types
 import Chess.Validator
 
-isValid _ _ _ = True
-
 finished   :: Board -> Bool
 finished b = False 
 
