@@ -11,10 +11,10 @@ import Chess.Validator
 finished   :: Board -> Bool
 finished b = False 
 
-move             :: Player -> (Int, Int) -> (Int, Int) -> Board -> Board
+move             :: Player -> (Int, Int) -> (Int, Int) -> Board -> Either String Board
 move p from to b = if isValid source to b
-                   then b''
-                   else b
+                   then Right b''
+                   else Left "Invalid move"
                        where piece  = fromJust $ lookup from b
                              source = (from, piece)
                              b'     = setPiece p (from, piece) to b
@@ -27,14 +27,17 @@ getMoveCoords = do x <- getLine
                    else getMoveCoords
                        where fmt [x1, y1, x2, y2] = ((x1,y1), (x2, y2))
 
-gameLoop b = do putStrLn $ writeBoard b
-                putStrLn "Enter your move in the form: 'xyxy'"
-                coords <- getMoveCoords
-                print coords
-                let b' = move White (fst coords) (snd coords) b
-                if finished b'
-                    then putStrLn "Finished!"
-                    else gameLoop b'
+gameLoop color b = do putStrLn $ writeBoard b
+                      putStrLn $ (show color) ++ ": Enter your move in the form: 'xyxy'"
+                      coords <- getMoveCoords
+                      print coords
+                      case move White (fst coords) (snd coords) b of
+                          Right b'         -> gameLoop (nextColor color) b'
+                          Left  "Finished" -> putStrLn "Finished"  -- Exit
+                          Left  msg        -> gameLoop color b
+
+nextColor Black = White
+nextColor _     = Black
 
 main = let board = readBoard initialBoard
-       in gameLoop board
+       in gameLoop White board
