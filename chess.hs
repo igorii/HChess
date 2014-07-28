@@ -30,11 +30,11 @@ getMoveCoords = do x <- getLine
 gameLoop color b = do putStrLn $ writeBoard b
                       putStrLn $ (show color) ++ ": Enter your move in the form: 'xyxy'"
                       coords <- getMoveCoords
-                      print coords
+                      putStrLn ""
                       case move White (fst coords) (snd coords) b of
                           Right b'         -> gameLoop (nextColor color) b'
                           Left  "Finished" -> putStrLn "Finished"  -- Exit
-                          Left  msg        -> gameLoop color b
+                          Left  msg        -> putStrLn msg >> gameLoop color b
 
 main = let board = readBoard initialBoard
        in gameLoop White board
