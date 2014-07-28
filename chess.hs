@@ -36,8 +36,5 @@ gameLoop color b = do putStrLn $ writeBoard b
                           Left  "Finished" -> putStrLn "Finished"  -- Exit
                           Left  msg        -> gameLoop color b
 
-nextColor Black = White
-nextColor _     = Black
-
 main = let board = readBoard initialBoard
        in gameLoop White board

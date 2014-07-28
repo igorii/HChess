@@ -11,6 +11,9 @@ data Player     = White
                 | Black 
                 deriving (Show, Eq)
 
+nextColor Black = White
+nextColor _     = Black
+
 data Piece      = Pawn
                 | Rook
                 | Bishop
